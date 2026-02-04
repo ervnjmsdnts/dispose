@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: 'watchful-wolverine-191.convex.cloud',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'content-clownfish-133.convex.cloud',
+        pathname: '/**',
+      },
     ],
   },
 };
