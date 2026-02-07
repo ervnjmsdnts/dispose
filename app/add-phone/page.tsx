@@ -42,17 +42,17 @@ export default function AddPhone() {
     return initial;
   });
   const [images, setImages] = useState<string[]>([]);
+  const [imageStorageIds, setImageStorageIds] = useState<Id<'_storage'>[]>([]);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
-  const [phoneId, setPhoneId] = useState<Id<'phones'> | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const createPhone = useMutation(api.index.createPhone);
   const uploadImage = useAction(api.index.uploadImage);
-  const addImageToPhone = useMutation(api.index.addImageToPhone);
+  const createPhoneWithImages = useMutation(api.index.createPhoneWithImages);
   const router = useRouter();
 
   useEffect(() => {
@@ -180,19 +180,8 @@ export default function AddPhone() {
           contentType: 'image/jpeg',
         });
 
-        if (!phoneId) {
-          const newPhoneId = await createPhone({
-            ownerIdentifier,
-            partStatuses,
-            conditionAnswers,
-          });
-          setPhoneId(newPhoneId);
-          await addImageToPhone({ phoneId: newPhoneId, imageId: storageId });
-        } else {
-          await addImageToPhone({ phoneId, imageId: storageId });
-        }
-
-        // Add to local state for preview
+        // Store the storage ID and preview URL without creating the phone yet
+        setImageStorageIds((prev) => [...prev, storageId]);
         const imageUrl = URL.createObjectURL(blob);
         setImages((prev) => [...prev, imageUrl]);
       } catch (error) {
@@ -215,18 +204,8 @@ export default function AddPhone() {
           contentType: file.type,
         });
 
-        if (!phoneId) {
-          const newPhoneId = await createPhone({
-            ownerIdentifier,
-            partStatuses,
-            conditionAnswers,
-          });
-          setPhoneId(newPhoneId);
-          await addImageToPhone({ phoneId: newPhoneId, imageId: storageId });
-        } else {
-          await addImageToPhone({ phoneId, imageId: storageId });
-        }
-
+        // Store the storage ID and preview URL without creating the phone yet
+        setImageStorageIds((prev) => [...prev, storageId]);
         const imageUrl = URL.createObjectURL(file);
         setImages((prev) => [...prev, imageUrl]);
       } catch (error) {
@@ -260,21 +239,27 @@ export default function AddPhone() {
       return;
     }
 
-    if (!phoneId && images.length === 0) {
-      // Create phone without images
-      try {
+    try {
+      if (imageStorageIds.length > 0) {
+        // Create phone with images
+        await createPhoneWithImages({
+          ownerIdentifier,
+          partStatuses,
+          conditionAnswers,
+          imageIds: imageStorageIds,
+        });
+      } else {
+        // Create phone without images
         await createPhone({
           ownerIdentifier,
           partStatuses,
           conditionAnswers,
         });
-        router.push('/');
-      } catch (error) {
-        console.error('Error creating phone:', error);
-        alert('Failed to create phone');
       }
-    } else {
       router.push('/');
+    } catch (error) {
+      console.error('Error creating phone:', error);
+      alert('Failed to create phone');
     }
   };
 

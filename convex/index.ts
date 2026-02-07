@@ -51,6 +51,31 @@ export const addImageToPhone = mutation({
   },
 });
 
+// Create a phone with images in one transaction
+export const createPhoneWithImages = mutation({
+  args: {
+    ownerIdentifier: v.string(),
+    partStatuses: v.record(v.string(), v.string()),
+    conditionAnswers: v.record(v.string(), v.boolean()),
+    imageIds: v.array(v.id('_storage')),
+  },
+  returns: v.id('phones'),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Not authenticated');
+    }
+
+    return await ctx.db.insert('phones', {
+      userId: identity.subject,
+      ownerIdentifier: args.ownerIdentifier,
+      partStatuses: args.partStatuses,
+      conditionAnswers: args.conditionAnswers,
+      images: args.imageIds,
+    });
+  },
+});
+
 // Upload an image file
 export const uploadImage = action({
   args: {
