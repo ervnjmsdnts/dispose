@@ -4,11 +4,11 @@ import { v } from 'convex/values';
 export default defineSchema({
   phones: defineTable({
     userId: v.string(), // Clerk user id
-    name: v.optional(v.string()),
-    brand: v.optional(v.string()),
-    model: v.optional(v.string()),
-    condition: v.string(), // Required: 'excellent', 'good', 'fair', 'poor'
-    description: v.optional(v.string()),
+    ownerIdentifier: v.string(), // User's name or identifier
+    // Part statuses: maps part name to status (Recyclable, Disposable (Hazardous), Disposable (Contaminated), Disposable (Non-functional))
+    partStatuses: v.record(v.string(), v.string()),
+    // Condition answers: maps question index to yes/no answer
+    conditionAnswers: v.record(v.string(), v.boolean()),
     images: v.array(v.id('_storage')),
   }).index('by_user', ['userId']),
 

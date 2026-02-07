@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import Link from 'next/link';
 import Image from 'next/image';
+import { PARTS_CLASSIFICATIONS, CONDITION_QUESTIONS } from '@/lib/constants';
 
 export default function Phones() {
   const phones = useQuery(api.index.listUserPhones);
   const requests = useQuery(api.index.listUserRequests);
+  const [partsModalOpen, setPartsModalOpen] = useState(false);
+  const [conditionModalOpen, setConditionModalOpen] = useState(false);
+  const [selectedPhoneId, setSelectedPhoneId] = useState<string | null>(null);
+
+  const selectedPhone = phones?.find((p) => p._id === selectedPhoneId);
 
   // Helper function to get disposal status for a phone
   const getDisposalStatus = (phoneId: string) => {
@@ -62,40 +76,25 @@ export default function Phones() {
               <Card key={phone._id} className='overflow-hidden'>
                 <CardHeader>
                   <CardTitle className='text-lg'>
-                    {phone.name ||
-                      `${phone.brand || 'Unknown'} ${phone.model || 'Phone'}`}
+                    {phone.ownerIdentifier}
                   </CardTitle>
-                  <CardDescription className='space-y-1'>
-                    <div className='flex items-center gap-2'>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          phone.condition === 'excellent'
-                            ? 'bg-green-100 text-green-800'
-                            : phone.condition === 'good'
-                              ? 'bg-blue-100 text-blue-800'
-                              : phone.condition === 'fair'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                        }`}>
-                        {phone.condition.charAt(0).toUpperCase() +
-                          phone.condition.slice(1)}
-                      </span>
-                      {phone.brand && (
-                        <span className='text-sm text-gray-600'>
-                          {phone.brand}
-                        </span>
-                      )}
-                      {phone.model && (
-                        <span className='text-sm text-gray-600'>
-                          • {phone.model}
-                        </span>
-                      )}
-                    </div>
-                    {phone.description && (
-                      <p className='text-sm text-gray-600 mt-2'>
-                        {phone.description}
-                      </p>
-                    )}
+                  <CardDescription className='grid grid-cols-2 gap-2  items-center'>
+                    <Button
+                      onClick={() => {
+                        setSelectedPhoneId(phone._id);
+                        setPartsModalOpen(true);
+                      }}
+                      className='text-sm w-full'>
+                      Parts Status Summary
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setSelectedPhoneId(phone._id);
+                        setConditionModalOpen(true);
+                      }}
+                      className='text-sm w-full text-left'>
+                      Condition Answers
+                    </Button>
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -110,7 +109,7 @@ export default function Phones() {
                           <div key={imageId} className='relative aspect-square'>
                             <Image
                               src={phone.imageUrls[index] || ''}
-                              alt={`${phone.name || 'Phone'} image ${index + 1}`}
+                              alt={`${phone.ownerIdentifier} image ${index + 1}`}
                               fill
                               className='object-cover rounded-lg'
                               sizes='(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw'
@@ -169,6 +168,76 @@ export default function Phones() {
             ))}
           </div>
         )}
+
+        {/* Parts Status Modal */}
+        <Dialog open={partsModalOpen} onOpenChange={setPartsModalOpen}>
+          <DialogContent className='max-w-2xl max-h-96 overflow-y-auto'>
+            <DialogHeader>
+              <DialogTitle>Parts Status Details</DialogTitle>
+              <DialogDescription>
+                Parts classification for {selectedPhone?.ownerIdentifier}
+              </DialogDescription>
+            </DialogHeader>
+            <div className='space-y-2'>
+              {selectedPhone &&
+                PARTS_CLASSIFICATIONS.map((part) => (
+                  <div
+                    key={part}
+                    className='flex justify-between items-center p-3 border border-gray-200 rounded-lg'>
+                    <span className='font-medium'>{part}</span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedPhone.partStatuses[part] === 'Recyclable'
+                          ? 'bg-green-100 text-green-800'
+                          : selectedPhone.partStatuses[part] ===
+                              'Disposable (Hazardous)'
+                            ? 'bg-red-100 text-red-800'
+                            : selectedPhone.partStatuses[part] ===
+                                'Disposable (Contaminated)'
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-gray-100 text-gray-800'
+                      }`}>
+                      {selectedPhone.partStatuses[part]}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Condition Answers Modal */}
+        <Dialog open={conditionModalOpen} onOpenChange={setConditionModalOpen}>
+          <DialogContent className='max-w-2xl max-h-96 overflow-y-auto'>
+            <DialogHeader>
+              <DialogTitle>Device Condition Answers</DialogTitle>
+              <DialogDescription>
+                Condition assessment for {selectedPhone?.ownerIdentifier}
+              </DialogDescription>
+            </DialogHeader>
+            <div className='space-y-2'>
+              {selectedPhone &&
+                CONDITION_QUESTIONS.map((question, index) => (
+                  <div
+                    key={index}
+                    className='flex justify-between items-center p-3 border border-gray-200 rounded-lg'>
+                    <span className='text-sm font-medium flex-1'>
+                      {question}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ml-4 ${
+                        selectedPhone.conditionAnswers[index.toString()]
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                      {selectedPhone.conditionAnswers[index.toString()]
+                        ? 'Yes'
+                        : 'No'}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className='mt-8 text-center'>
           <Link href='/add-phone'>

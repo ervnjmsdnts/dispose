@@ -17,22 +17,22 @@ import { Truck, MapPin, Plus } from 'lucide-react';
 const DROP_OFF_SITES = [
   {
     id: 'sm-city-batangas-sm-cares',
-    name: 'SM City Batangas – SM Cares E-Waste Collection',
+    name: 'SM City Batangas - SM Cares E-Waste Collection',
     address:
       '2nd Floor Cyberzone, SM City Batangas, Pallocan West, Batangas City',
-    hours: 'Mon–Sun 10:00–21:00',
+    hours: 'Mon-Sun 10:00-21:00',
   },
   {
     id: 'globe-ewaste-sm-city-batangas',
-    name: 'Globe E-Waste Zero Bin – SM City Batangas',
+    name: 'Globe E-Waste Zero Bin - SM City Batangas',
     address: 'Ground Floor, SM City Batangas, Pallocan West, Batangas City',
-    hours: 'Mon–Sun 10:00–21:00',
+    hours: 'Mon-Sun 10:00-21:00',
   },
   {
     id: 'batangas-city-enro',
-    name: 'Batangas City ENRO – Environmental Office',
+    name: 'Batangas City ENRO - Environmental Office',
     address: 'Batangas City Hall Compound, Poblacion, Batangas City',
-    hours: 'Mon–Fri 8:00–17:00',
+    hours: 'Mon-Fri 8:00-17:00',
   },
 ];
 
@@ -42,15 +42,17 @@ export default function Requests() {
 
   const getPhoneInfo = (phoneId: string) => {
     const phone = phones?.find((p) => p._id === phoneId);
-    if (!phone) return { name: 'Unknown Phone', condition: null };
+    if (!phone)
+      return {
+        ownerIdentifier: 'Unknown Phone',
+        partStatuses: {},
+        conditionAnswers: {},
+      };
 
     return {
-      name:
-        phone.name || `${phone.brand || 'Unknown'} ${phone.model || 'Phone'}`,
-      condition: phone.condition,
-      brand: phone.brand,
-      model: phone.model,
-      description: phone.description,
+      ownerIdentifier: phone.ownerIdentifier,
+      partStatuses: phone.partStatuses || {},
+      conditionAnswers: phone.conditionAnswers || {},
     };
   };
 
@@ -121,35 +123,29 @@ export default function Requests() {
                           return (
                             <div
                               key={phoneId}
-                              className='flex items-center gap-2'>
-                              <span className='text-sm font-medium'>
-                                {phoneInfo.name}
-                              </span>
-                              {phoneInfo.condition && (
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    phoneInfo.condition === 'excellent'
-                                      ? 'bg-green-100 text-green-800'
-                                      : phoneInfo.condition === 'good'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : phoneInfo.condition === 'fair'
-                                          ? 'bg-yellow-100 text-yellow-800'
-                                          : 'bg-red-100 text-red-800'
-                                  }`}>
-                                  {phoneInfo.condition.charAt(0).toUpperCase() +
-                                    phoneInfo.condition.slice(1)}
-                                </span>
-                              )}
-                              <div className='text-xs text-gray-600'>
-                                {phoneInfo.brand && (
-                                  <span>{phoneInfo.brand}</span>
-                                )}
-                                {phoneInfo.brand && phoneInfo.model && (
-                                  <span> • </span>
-                                )}
-                                {phoneInfo.model && (
-                                  <span>{phoneInfo.model}</span>
-                                )}
+                              className='p-3 border border-gray-200 rounded-lg'>
+                              <div className='font-medium text-sm'>
+                                {phoneInfo.ownerIdentifier}
+                              </div>
+                              <div className='text-xs text-gray-600 mt-1'>
+                                Recyclable:{' '}
+                                {
+                                  Object.values(phoneInfo.partStatuses).filter(
+                                    (s) => s === 'Recyclable',
+                                  ).length
+                                }{' '}
+                                • Hazardous:{' '}
+                                {
+                                  Object.values(phoneInfo.partStatuses).filter(
+                                    (s) => s === 'Disposable (Hazardous)',
+                                  ).length
+                                }{' '}
+                                • Yes Answers:{' '}
+                                {
+                                  Object.values(
+                                    phoneInfo.conditionAnswers,
+                                  ).filter((v) => v).length
+                                }
                               </div>
                             </div>
                           );

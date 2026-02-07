@@ -193,33 +193,30 @@ export default function CreateRequest() {
                       className='rounded border-gray-300'
                     />
                     <div className='flex-1'>
-                      <div className='flex items-center gap-2'>
-                        <span className='font-medium'>
-                          {phone.name ||
-                            `${phone.brand || 'Unknown'} ${phone.model || 'Phone'}`}
-                        </span>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            phone.condition === 'excellent'
-                              ? 'bg-green-100 text-green-800'
-                              : phone.condition === 'good'
-                                ? 'bg-blue-100 text-blue-800'
-                                : phone.condition === 'fair'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                          }`}>
-                          {phone.condition.charAt(0).toUpperCase() +
-                            phone.condition.slice(1)}
-                        </span>
-                      </div>
+                      <span className='font-medium'>
+                        {phone.ownerIdentifier}
+                      </span>
                       <div className='text-sm text-gray-600'>
-                        {phone.brand && <span>{phone.brand}</span>}
-                        {phone.brand && phone.model && <span> • </span>}
-                        {phone.model && <span>{phone.model}</span>}
-                        {(phone.brand || phone.model) && phone.description && (
-                          <span> • </span>
-                        )}
-                        {phone.description && <span>{phone.description}</span>}
+                        <div>
+                          Recyclable:{' '}
+                          {
+                            Object.values(phone.partStatuses).filter(
+                              (s) => s === 'Recyclable',
+                            ).length
+                          }{' '}
+                          • Hazardous:{' '}
+                          {
+                            Object.values(phone.partStatuses).filter(
+                              (s) => s === 'Disposable (Hazardous)',
+                            ).length
+                          }{' '}
+                          • Condition Yes:{' '}
+                          {
+                            Object.values(phone.conditionAnswers).filter(
+                              (v) => v,
+                            ).length
+                          }
+                        </div>
                       </div>
                     </div>
                     <span className='text-sm text-gray-500'>

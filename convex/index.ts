@@ -4,11 +4,9 @@ import { v } from 'convex/values';
 // Create a new phone entry
 export const createPhone = mutation({
   args: {
-    name: v.optional(v.string()),
-    brand: v.optional(v.string()),
-    model: v.optional(v.string()),
-    condition: v.string(),
-    description: v.optional(v.string()),
+    ownerIdentifier: v.string(),
+    partStatuses: v.record(v.string(), v.string()),
+    conditionAnswers: v.record(v.string(), v.boolean()),
   },
   returns: v.id('phones'),
   handler: async (ctx, args) => {
@@ -19,11 +17,9 @@ export const createPhone = mutation({
 
     return await ctx.db.insert('phones', {
       userId: identity.subject,
-      name: args.name,
-      brand: args.brand,
-      model: args.model,
-      condition: args.condition,
-      description: args.description,
+      ownerIdentifier: args.ownerIdentifier,
+      partStatuses: args.partStatuses,
+      conditionAnswers: args.conditionAnswers,
       images: [],
     });
   },
@@ -93,11 +89,9 @@ export const listUserPhones = query({
     v.object({
       _id: v.id('phones'),
       _creationTime: v.number(),
-      name: v.optional(v.string()),
-      brand: v.optional(v.string()),
-      model: v.optional(v.string()),
-      condition: v.string(),
-      description: v.optional(v.string()),
+      ownerIdentifier: v.string(),
+      partStatuses: v.record(v.string(), v.string()),
+      conditionAnswers: v.record(v.string(), v.boolean()),
       images: v.array(v.id('_storage')),
       imageUrls: v.array(v.union(v.string(), v.null())),
     }),

@@ -7,19 +7,40 @@ import { Id } from '../../convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Camera, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { PARTS_CLASSIFICATIONS, CONDITION_QUESTIONS } from '@/lib/constants';
+
+const PART_STATUSES = [
+  'Recyclable',
+  'Disposable (Hazardous)',
+  'Disposable (Contaminated)',
+  'Disposable (Non-functional)',
+];
 
 export default function AddPhone() {
-  const [name, setName] = useState('');
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
-  const [condition, setCondition] = useState('');
-  const [description, setDescription] = useState('');
+  const [ownerIdentifier, setOwnerIdentifier] = useState('');
+  const [partStatuses, setPartStatuses] = useState<Record<string, string>>(
+    () => {
+      const initial: Record<string, string> = {};
+      PARTS_CLASSIFICATIONS.forEach((part) => {
+        initial[part] = '';
+      });
+      return initial;
+    },
+  );
+  const [conditionAnswers, setConditionAnswers] = useState<
+    Record<string, boolean>
+  >(() => {
+    const initial: Record<string, boolean> = {};
+    CONDITION_QUESTIONS.forEach((_, index) => {
+      initial[index.toString()] = false;
+    });
+    return initial;
+  });
   const [images, setImages] = useState<string[]>([]);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
@@ -50,17 +71,6 @@ export default function AddPhone() {
         setHasCamera(false);
       });
   }, []);
-
-  useEffect(() => {
-    console.log('Video element state:', {
-      isCapturing,
-      cameraLoading,
-      videoRef: !!videoRef.current,
-      srcObject: videoRef.current?.srcObject,
-      videoWidth: videoRef.current?.videoWidth,
-      videoHeight: videoRef.current?.videoHeight,
-    });
-  }, [isCapturing, cameraLoading]);
 
   const startCamera = async () => {
     setCameraLoading(true);
@@ -171,13 +181,10 @@ export default function AddPhone() {
         });
 
         if (!phoneId) {
-          // Create phone first
           const newPhoneId = await createPhone({
-            name,
-            brand,
-            model,
-            condition,
-            description,
+            ownerIdentifier,
+            partStatuses,
+            conditionAnswers,
           });
           setPhoneId(newPhoneId);
           await addImageToPhone({ phoneId: newPhoneId, imageId: storageId });
@@ -210,11 +217,9 @@ export default function AddPhone() {
 
         if (!phoneId) {
           const newPhoneId = await createPhone({
-            name,
-            brand: brand || undefined,
-            model: model || undefined,
-            condition,
-            description: description || undefined,
+            ownerIdentifier,
+            partStatuses,
+            conditionAnswers,
           });
           setPhoneId(newPhoneId);
           await addImageToPhone({ phoneId: newPhoneId, imageId: storageId });
@@ -232,15 +237,37 @@ export default function AddPhone() {
   };
 
   const handleSubmit = async () => {
-    if (!condition.trim()) {
-      alert('Please select the phone condition');
+    if (!ownerIdentifier.trim()) {
+      alert('Please enter your name or identifier');
+      return;
+    }
+
+    // Check if all parts have a status assigned
+    const allPartsAssigned = PARTS_CLASSIFICATIONS.every(
+      (part) => partStatuses[part] && partStatuses[part].trim(),
+    );
+    if (!allPartsAssigned) {
+      alert('Please assign a status to all phone parts');
+      return;
+    }
+
+    // Check if all condition questions have been answered
+    const allQuestionsAnswered = CONDITION_QUESTIONS.every(
+      (_, index) => conditionAnswers[index.toString()] !== undefined,
+    );
+    if (!allQuestionsAnswered) {
+      alert('Please answer all condition questions');
       return;
     }
 
     if (!phoneId && images.length === 0) {
       // Create phone without images
       try {
-        await createPhone({ name, brand, model, condition, description });
+        await createPhone({
+          ownerIdentifier,
+          partStatuses,
+          conditionAnswers,
+        });
         router.push('/');
       } catch (error) {
         console.error('Error creating phone:', error);
@@ -265,90 +292,106 @@ export default function AddPhone() {
             <CardTitle>Add Phone for Recycling</CardTitle>
           </CardHeader>
           <CardContent className='space-y-6'>
+            {/* Owner/Identifier Section */}
             <div>
-              <Label htmlFor='name'>Phone Name (optional)</Label>
+              <Label htmlFor='ownerIdentifier'>Your Name or Identifier *</Label>
               <Input
-                id='name'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder='e.g., iPhone 12'
+                id='ownerIdentifier'
+                value={ownerIdentifier}
+                onChange={(e) => setOwnerIdentifier(e.target.value)}
+                placeholder='Enter your name or phone identifier'
+                className='mt-1'
               />
             </div>
 
-            <div>
-              <Label htmlFor='description'>Description (optional)</Label>
-              <Textarea
-                id='description'
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder='Additional details about the phone'
-              />
-            </div>
-
-            {/* New fields */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <Label htmlFor='brand'>Brand (optional)</Label>
-                <Input
-                  id='brand'
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder='e.g., Apple, Samsung, Google'
-                  className='mt-1'
-                />
-              </div>
-
-              <div>
-                <Label htmlFor='model'>Model (optional)</Label>
-                <Input
-                  id='model'
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder='e.g., iPhone 12, Galaxy S21'
-                  className='mt-1'
-                />
+            {/* Phone Parts Classification Section */}
+            <div className='border-t pt-6'>
+              <h3 className='text-lg font-semibold mb-4'>
+                Phone Parts Classification
+              </h3>
+              <div className='space-y-4'>
+                {PARTS_CLASSIFICATIONS.map((part) => (
+                  <div key={part}>
+                    <Label htmlFor={`part-${part}`}>{part} *</Label>
+                    <select
+                      id={`part-${part}`}
+                      value={partStatuses[part] || ''}
+                      onChange={(e) =>
+                        setPartStatuses((prev) => ({
+                          ...prev,
+                          [part]: e.target.value,
+                        }))
+                      }
+                      className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1'
+                      required>
+                      <option value=''>Select status</option>
+                      {PART_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div>
-              <Label htmlFor='condition'>Condition *</Label>
-              <select
-                id='condition'
-                value={condition}
-                onChange={(e) => setCondition(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1'
-                required>
-                <option value=''>Select condition</option>
-                <option value='excellent'>
-                  Excellent - Like new, minor wear
-                </option>
-                <option value='good'>Good - Some wear, fully functional</option>
-                <option value='fair'>
-                  Fair - Noticeable wear, still works
-                </option>
-                <option value='poor'>Poor - Heavy wear, may have issues</option>
-              </select>
+            {/* Device Condition Questions Section */}
+            <div className='border-t pt-6'>
+              <h3 className='text-lg font-semibold mb-4'>
+                Device Condition Questions
+              </h3>
+              <div className='space-y-4'>
+                {CONDITION_QUESTIONS.map((question, index) => (
+                  <div
+                    key={index}
+                    className='flex items-center justify-between p-3 border border-gray-200 rounded-lg'>
+                    <label className='text-sm font-medium flex-1'>
+                      {question}
+                    </label>
+                    <div className='flex gap-2 ml-4'>
+                      <Button
+                        type='button'
+                        variant={
+                          conditionAnswers[index.toString()] === true
+                            ? 'default'
+                            : 'outline'
+                        }
+                        onClick={() =>
+                          setConditionAnswers((prev) => ({
+                            ...prev,
+                            [index.toString()]: true,
+                          }))
+                        }
+                        className='w-12'>
+                        Yes
+                      </Button>
+                      <Button
+                        type='button'
+                        variant={
+                          conditionAnswers[index.toString()] === false
+                            ? 'default'
+                            : 'outline'
+                        }
+                        onClick={() =>
+                          setConditionAnswers((prev) => ({
+                            ...prev,
+                            [index.toString()]: false,
+                          }))
+                        }
+                        className='w-12'>
+                        No
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div>
+            {/* Photos Section */}
+            <div className='border-t pt-6'>
               <Label>Photos</Label>
               <div className='mt-2 space-y-4'>
-                {/* Status indicator */}
-                {/* <div className='text-sm text-gray-600 bg-gray-100 p-2 rounded'>
-                  Status:{' '}
-                  {cameraLoading
-                    ? '⏳ Loading camera...'
-                    : isCapturing
-                      ? '📹 Camera active'
-                      : '📷 Camera inactive'}{' '}
-                  | Images: {images.length} | Camera:{' '}
-                  {hasCamera === null
-                    ? 'Checking...'
-                    : hasCamera
-                      ? '✅ Available'
-                      : '❌ Not available'}
-                </div> */}
-
                 {images.length > 0 && (
                   <div className='grid grid-cols-2 gap-4'>
                     {images.map((image, index) => (
@@ -410,7 +453,7 @@ export default function AddPhone() {
                   className='hidden'
                 />
 
-                {/* Always render video element but hide when not capturing */}
+                {/* Camera preview section - unchanged */}
                 <div
                   className={`space-y-4 ${isCapturing ? 'border-2 border-blue-500 rounded-lg p-4 bg-blue-50' : 'hidden'}`}>
                   <div className='text-center text-sm text-blue-600 font-medium mb-2'>

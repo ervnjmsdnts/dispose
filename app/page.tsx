@@ -141,10 +141,15 @@ function Dashboard() {
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
               {phones.map((phone) => (
                 <div key={phone._id} className='border rounded-lg p-4'>
-                  <h3 className='font-medium'>
-                    {phone.name || 'Unnamed Phone'}
-                  </h3>
-                  <p className='text-sm text-gray-600'>{phone.description}</p>
+                  <h3 className='font-medium'>{phone.ownerIdentifier}</h3>
+                  <p className='text-sm text-gray-600'>
+                    Recyclable:{' '}
+                    {
+                      Object.values(phone.partStatuses).filter(
+                        (s) => s === 'Recyclable',
+                      ).length
+                    }
+                  </p>
                   <p className='text-sm text-gray-500'>
                     {phone.images.length} image
                     {phone.images.length !== 1 ? 's' : ''}
