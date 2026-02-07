@@ -279,40 +279,70 @@ export default function AddPhone() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4'>
+    <main className='min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 p-4'>
       <div className='max-w-2xl mx-auto'>
-        <div className='mb-6'>
+        <div className='mb-8'>
           <Link href='/'>
-            <Button variant='ghost'>← Back</Button>
+            <Button
+              variant='outline'
+              className='border-teal-500/30 text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 hover:text-teal-400'>
+              ← Back
+            </Button>
           </Link>
         </div>
 
-        <Card>
+        <Card className='bg-slate-800 border-teal-500/30 shadow-2xl'>
           <CardHeader>
-            <CardTitle>Add Phone for Recycling</CardTitle>
+            <CardTitle className='text-2xl text-white'>
+              Register Your Device
+            </CardTitle>
+            <p className='text-sm text-gray-400 mt-2'>
+              Document your phone&apos;s condition and component status for
+              responsible recycling
+            </p>
           </CardHeader>
-          <CardContent className='space-y-6'>
+          <CardContent className='space-y-8'>
             {/* Owner/Identifier Section */}
-            <div>
-              <Label htmlFor='ownerIdentifier'>Your Name or Identifier *</Label>
+            <div className='space-y-2'>
+              <Label
+                htmlFor='ownerIdentifier'
+                className='text-white font-semibold'>
+                Your Name or Identifier *
+              </Label>
               <Input
                 id='ownerIdentifier'
                 value={ownerIdentifier}
                 onChange={(e) => setOwnerIdentifier(e.target.value)}
-                placeholder='Enter your name or phone identifier'
-                className='mt-1'
+                placeholder='John Doe, or Device ID'
+                className='bg-slate-800/50 border-teal-500/30 text-white placeholder:text-gray-500 focus:border-teal-500/80'
               />
             </div>
 
             {/* Phone Parts Classification Section */}
-            <div className='border-t pt-6'>
-              <h3 className='text-lg font-semibold mb-4'>
-                Phone Parts Classification
-              </h3>
-              <div className='space-y-4'>
+            <div className='space-y-4'>
+              <div>
+                <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
+                  <span className='w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold'>
+                    1
+                  </span>
+                  Component Classification
+                </h3>
+                <p className='text-sm text-gray-400 mb-4'>
+                  Assess each component. Recyclable parts recover valuable
+                  materials. Disposable parts require proper handling to prevent
+                  environmental contamination.
+                </p>
+              </div>
+              <div className='space-y-3'>
                 {PARTS_CLASSIFICATIONS.map((part) => (
-                  <div key={part}>
-                    <Label htmlFor={`part-${part}`}>{part} *</Label>
+                  <div
+                    key={part}
+                    className='bg-slate-800/30 border border-slate-700/50 rounded-lg p-4'>
+                    <Label
+                      htmlFor={`part-${part}`}
+                      className='text-white font-medium block mb-2'>
+                      {part}
+                    </Label>
                     <select
                       id={`part-${part}`}
                       value={partStatuses[part] || ''}
@@ -322,9 +352,9 @@ export default function AddPhone() {
                           [part]: e.target.value,
                         }))
                       }
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1'
+                      className='w-full px-3 py-2 bg-slate-700/50 border border-teal-500/20 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent'
                       required>
-                      <option value=''>Select status</option>
+                      <option value=''>Select status...</option>
                       {PART_STATUSES.map((status) => (
                         <option key={status} value={status}>
                           {status}
@@ -337,50 +367,61 @@ export default function AddPhone() {
             </div>
 
             {/* Device Condition Questions Section */}
-            <div className='border-t pt-6'>
-              <h3 className='text-lg font-semibold mb-4'>
-                Device Condition Questions
-              </h3>
-              <div className='space-y-4'>
+            <div className='space-y-4'>
+              <div>
+                <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
+                  <span className='w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold'>
+                    2
+                  </span>
+                  Device Condition Assessment
+                </h3>
+                <p className='text-sm text-gray-400 mb-4'>
+                  Answer these questions to assess your device&apos;s condition.
+                  This helps determine the safest disposal method.
+                </p>
+              </div>
+              <div className='space-y-3'>
                 {CONDITION_QUESTIONS.map((question, index) => (
                   <div
                     key={index}
-                    className='flex items-center justify-between p-3 border border-gray-200 rounded-lg'>
-                    <label className='text-sm font-medium flex-1'>
-                      {question}
+                    className='bg-slate-800/30 border border-slate-700/50 rounded-lg p-4 space-y-3'>
+                    <label className='text-sm font-medium text-white block'>
+                      {index + 1}. {question}
                     </label>
-                    <div className='flex gap-2 ml-4'>
+                    <div className='flex gap-3'>
                       <Button
                         type='button'
-                        variant={
-                          conditionAnswers[index.toString()] === true
-                            ? 'default'
-                            : 'outline'
-                        }
+                        size='sm'
                         onClick={() =>
                           setConditionAnswers((prev) => ({
                             ...prev,
                             [index.toString()]: true,
                           }))
                         }
-                        className='w-12'>
-                        Yes
+                        className={`flex-1 transition-all ${
+                          conditionAnswers[index.toString()] === true
+                            ? 'bg-emerald-500/30 border-emerald-500/50 text-emerald-400 border'
+                            : 'bg-slate-700/50 border-slate-600/50 text-gray-400 border hover:bg-slate-600/50'
+                        }`}
+                        variant='outline'>
+                        ✓ Yes
                       </Button>
                       <Button
                         type='button'
-                        variant={
-                          conditionAnswers[index.toString()] === false
-                            ? 'default'
-                            : 'outline'
-                        }
+                        size='sm'
                         onClick={() =>
                           setConditionAnswers((prev) => ({
                             ...prev,
                             [index.toString()]: false,
                           }))
                         }
-                        className='w-12'>
-                        No
+                        className={`flex-1 transition-all ${
+                          conditionAnswers[index.toString()] === false
+                            ? 'bg-red-500/30 border-red-500/50 text-red-400 border'
+                            : 'bg-slate-700/50 border-slate-600/50 text-gray-400 border hover:bg-slate-600/50'
+                        }`}
+                        variant='outline'>
+                        ✗ No
                       </Button>
                     </div>
                   </div>
@@ -389,122 +430,142 @@ export default function AddPhone() {
             </div>
 
             {/* Photos Section */}
-            <div className='border-t pt-6'>
-              <Label>Photos</Label>
-              <div className='mt-2 space-y-4'>
-                {images.length > 0 && (
-                  <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-4'>
+              <div>
+                <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
+                  <span className='w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-sm font-bold'>
+                    3
+                  </span>
+                  Device Photos
+                </h3>
+                <p className='text-sm text-gray-400 mb-4'>
+                  Photos help document the device condition. Gray boxes will be
+                  replaced with your images.
+                </p>
+              </div>
+
+              {images.length > 0 && (
+                <div className='rounded-lg border border-teal-500/20 bg-slate-800/30 p-4'>
+                  <p className='text-sm text-gray-400 mb-3'>
+                    {images.length} image{images.length !== 1 ? 's' : ''}{' '}
+                    captured
+                  </p>
+                  <div className='grid grid-cols-2 gap-3'>
                     {images.map((image, index) => (
-                      <div key={index} className='relative w-full h-32'>
+                      <div
+                        key={index}
+                        className='relative w-full h-32 rounded-lg overflow-hidden border border-slate-700/50'>
                         <Image
                           src={image}
                           alt={`Phone ${index + 1}`}
                           fill
-                          className='object-cover rounded-lg'
+                          className='object-cover'
                         />
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                <div className='flex gap-2'>
+              <div className='flex gap-3'>
+                <Button
+                  onClick={() => {
+                    if (isCapturing) {
+                      stopCamera();
+                    } else {
+                      startCamera();
+                    }
+                  }}
+                  disabled={cameraLoading || hasCamera === false}
+                  className={`flex-1 gap-2 ${
+                    isCapturing
+                      ? 'bg-red-500/30 hover:bg-red-500/40 text-red-400'
+                      : 'bg-teal-500/30 hover:bg-teal-500/40 text-teal-400'
+                  }`}
+                  variant='outline'>
+                  <Camera className='w-4 h-4' />
+                  {cameraLoading
+                    ? 'Loading Camera...'
+                    : isCapturing
+                      ? 'Stop Camera'
+                      : hasCamera === false
+                        ? 'No Camera'
+                        : 'Take Photo'}
+                </Button>
+
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant='outline'
+                  className='flex-1 gap-2 bg-cyan-500/30 hover:bg-cyan-500/40 text-cyan-400 border-cyan-500/20'>
+                  <Upload className='w-4 h-4' />
+                  Upload
+                </Button>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type='file'
+                accept='image/*'
+                multiple
+                onChange={handleFileUpload}
+                className='hidden'
+              />
+
+              {/* Camera preview section */}
+              <div
+                className={`rounded-lg transition-all ${
+                  isCapturing
+                    ? 'border-2 border-teal-500 ring-2 ring-teal-500/20 p-4 bg-slate-800/50 space-y-4'
+                    : 'hidden'
+                }`}>
+                <div className='text-center text-sm text-teal-400 font-medium'>
+                  📹 Camera Active - Position your device and click Capture
+                </div>
+                <div className='relative bg-slate-950 rounded-lg overflow-hidden min-h-64 flex items-center justify-center border border-teal-500/30'>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className='w-full h-64 object-cover'
+                    onLoadedData={() =>
+                      console.log('Video loaded successfully')
+                    }
+                    onError={(e) => console.error('Video error:', e)}
+                    onCanPlay={() => console.log('Video can play')}
+                    style={{
+                      minHeight: '256px',
+                      maxHeight: '400px',
+                    }}
+                  />
+                  {!videoRef.current?.srcObject && isCapturing && (
+                    <div className='absolute inset-0 flex items-center justify-center text-teal-400 text-sm'>
+                      Loading camera...
+                    </div>
+                  )}
                   <Button
                     onClick={() => {
-                      console.log(
-                        'Camera button clicked, isCapturing:',
-                        isCapturing,
-                        'cameraLoading:',
-                        cameraLoading,
-                      );
-                      if (isCapturing) {
-                        stopCamera();
-                      } else {
-                        startCamera();
-                      }
+                      captureImage();
                     }}
-                    disabled={cameraLoading || hasCamera === false}
-                    variant={isCapturing ? 'destructive' : 'default'}
-                    className='flex-1'>
-                    <Camera className='w-4 h-4' />
-                    {cameraLoading
-                      ? 'Loading Camera...'
-                      : isCapturing
-                        ? 'Stop Camera'
-                        : hasCamera === false
-                          ? 'No Camera'
-                          : 'Take Photo'}
+                    className='absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-linear-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white gap-2'
+                    size='lg'>
+                    ⭕ Capture
                   </Button>
-
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    variant='outline'
-                    className='flex-1'>
-                    <Upload className='w-4 h-4' />
-                    Upload
-                  </Button>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type='file'
-                  accept='image/*'
-                  multiple
-                  onChange={handleFileUpload}
-                  className='hidden'
-                />
-
-                {/* Camera preview section - unchanged */}
-                <div
-                  className={`space-y-4 ${isCapturing ? 'border-2 border-blue-500 rounded-lg p-4 bg-blue-50' : 'hidden'}`}>
-                  <div className='text-center text-sm text-blue-600 font-medium mb-2'>
-                    Camera Active - Click Capture to take photo
-                  </div>
-                  <div className='relative bg-black rounded-lg overflow-hidden min-h-64 flex items-center justify-center border-2 border-gray-300'>
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className='w-full h-64 object-cover rounded-lg border-2 border-white'
-                      onLoadedData={() =>
-                        console.log('Video loaded successfully')
-                      }
-                      onError={(e) => console.error('Video error:', e)}
-                      onCanPlay={() => console.log('Video can play')}
-                      onPlay={() => console.log('Video started playing')}
-                      style={{
-                        minHeight: '256px',
-                        maxHeight: '400px',
-                        backgroundColor: '#000',
-                      }}
-                    />
-                    {!videoRef.current?.srcObject && isCapturing && (
-                      <div className='absolute inset-0 flex items-center justify-center text-white text-lg'>
-                        Loading camera...
-                      </div>
-                    )}
-                    <Button
-                      onClick={() => {
-                        console.log('Capture button clicked');
-                        captureImage();
-                      }}
-                      className='absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-red-500 hover:bg-red-600'
-                      size='lg'>
-                      Capture
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
 
-            <Button onClick={handleSubmit} className='w-full' size='lg'>
-              Save Phone
+            <Button
+              onClick={handleSubmit}
+              className='w-full bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white border-0 font-semibold py-6 text-lg'
+              size='lg'>
+              Save Device
             </Button>
           </CardContent>
         </Card>
 
         <canvas ref={canvasRef} className='hidden' />
       </div>
-    </div>
+    </main>
   );
 }

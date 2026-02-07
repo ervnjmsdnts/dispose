@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Truck, MapPin } from 'lucide-react';
+import { Truck, MapPin } from 'lucide-react';
 
 // Static drop-off sites data
 const DROP_OFF_SITES = [
@@ -108,169 +108,204 @@ export default function CreateRequest() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4'>
+    <main className='min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 p-4'>
       <div className='max-w-2xl mx-auto'>
-        <div className='mb-6'>
+        <div className='mb-8'>
           <Link href='/requests'>
-            <Button variant='ghost' className='mb-4'>
-              <ArrowLeft className='w-4 h-4 mr-2' />
-              Back to Requests
+            <Button
+              variant='outline'
+              className='border-teal-500/30 text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 hover:text-teal-400 mb-6'>
+              ← Back to Requests
             </Button>
           </Link>
 
-          <div className='text-center'>
-            <h1 className='text-3xl font-bold text-gray-900 mb-2'>
-              Create Disposal Request
+          <div className='space-y-3'>
+            <h1 className='text-3xl sm:text-4xl font-bold text-white'>
+              Schedule Pickup or Drop-off
             </h1>
-            <p className='text-lg text-gray-600'>
-              Fill out the form below to schedule your phone recycling disposal
+            <p className='text-gray-400 text-lg'>
+              Select your phones and arrange for secure, responsible disposal
             </p>
           </div>
         </div>
 
-        <Card>
+        <Card className='bg-slate-800 border-teal-500/30 shadow-2xl'>
           <CardHeader>
-            <CardTitle className='flex items-center gap-2'>
-              <Truck className='w-5 h-5' />
-              Disposal Request Form
+            <CardTitle className='text-2xl text-white flex items-center gap-2'>
+              <Truck className='w-6 h-6 text-teal-400' />
+              Disposal Request
             </CardTitle>
-            <CardDescription>
-              Please provide all required information for your disposal request
+            <CardDescription className='text-gray-400'>
+              Provide your details and select your disposal preference
             </CardDescription>
           </CardHeader>
 
-          <CardContent className='space-y-6'>
+          <CardContent className='space-y-8'>
             {/* Contact Information */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <Label htmlFor='fullName'>Full Name *</Label>
-                <Input
-                  id='fullName'
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder='Enter your full name'
-                  required
-                  className='mt-1'
-                />
-              </div>
+            <div className='space-y-4'>
+              <h3 className='text-lg font-semibold text-white flex items-center gap-2'>
+                <span className='w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold'>
+                  1
+                </span>
+                Your Information
+              </h3>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <Label
+                    htmlFor='fullName'
+                    className='text-white font-semibold'>
+                    Full Name *
+                  </Label>
+                  <Input
+                    id='fullName'
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder='John Doe'
+                    required
+                    className='bg-slate-800/50 border-teal-500/30 text-white placeholder:text-gray-500 focus:border-teal-500'
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor='contactInfo'>Contact Phone or Email *</Label>
-                <Input
-                  id='contactInfo'
-                  value={contactInfo}
-                  onChange={(e) => setContactInfo(e.target.value)}
-                  placeholder='Enter phone number or email'
-                  required
-                  className='mt-1'
-                />
+                <div className='space-y-2'>
+                  <Label
+                    htmlFor='contactInfo'
+                    className='text-white font-semibold'>
+                    Contact Phone or Email *
+                  </Label>
+                  <Input
+                    id='contactInfo'
+                    value={contactInfo}
+                    onChange={(e) => setContactInfo(e.target.value)}
+                    placeholder='+63 9xx xxx xxxx'
+                    required
+                    className='bg-slate-800/50 border-teal-500/30 text-white placeholder:text-gray-500 focus:border-teal-500'
+                  />
+                </div>
               </div>
             </div>
 
             {/* Phone Selection */}
-            <div>
-              <Label className='text-base font-medium'>Select Phones *</Label>
-              <p className='text-sm text-gray-600 mb-3'>
-                Choose the phones you want to dispose of
+            <div className='space-y-4'>
+              <h3 className='text-lg font-semibold text-white flex items-center gap-2'>
+                <span className='w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold'>
+                  2
+                </span>
+                Select Devices *
+              </h3>
+              <p className='text-sm text-gray-400'>
+                Choose which registered devices you want to dispose of
               </p>
-              <div className='space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3 bg-gray-50'>
-                {phones?.map((phone) => (
-                  <label
-                    key={phone._id}
-                    className='flex items-center space-x-3 p-2 rounded hover:bg-white cursor-pointer'>
-                    <input
-                      type='checkbox'
-                      checked={selectedPhones.includes(phone._id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedPhones([...selectedPhones, phone._id]);
-                        } else {
-                          setSelectedPhones(
-                            selectedPhones.filter((id) => id !== phone._id),
-                          );
-                        }
-                      }}
-                      className='rounded border-gray-300'
-                    />
-                    <div className='flex-1'>
-                      <span className='font-medium'>
-                        {phone.ownerIdentifier}
-                      </span>
-                      <div className='text-sm text-gray-600'>
-                        <div>
-                          Recyclable:{' '}
+              <div className='space-y-2 max-h-64 overflow-y-auto border border-slate-700/50 rounded-lg p-4 bg-slate-800/30 scrollbar-thin scrollbar-thumb-teal-500/20 scrollbar-track-slate-800/50'>
+                {phones && phones.length > 0 ? (
+                  phones.map((phone) => (
+                    <label
+                      key={phone._id}
+                      className='flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700/50 rounded-lg hover:border-teal-500/30 cursor-pointer transition-all'>
+                      <input
+                        type='checkbox'
+                        checked={selectedPhones.includes(phone._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPhones([...selectedPhones, phone._id]);
+                          } else {
+                            setSelectedPhones(
+                              selectedPhones.filter((id) => id !== phone._id),
+                            );
+                          }
+                        }}
+                        className='w-4 h-4 mt-2 border-teal-500/30 rounded bg-slate-700/50 cursor-pointer accent-teal-500'
+                      />
+                      <div className='flex-1'>
+                        <p className='font-semibold text-white'>
+                          {phone.ownerIdentifier}
+                        </p>
+                        <p className='text-xs text-gray-400 mt-1'>
+                          ♻️{' '}
                           {
                             Object.values(phone.partStatuses).filter(
                               (s) => s === 'Recyclable',
                             ).length
                           }{' '}
-                          • Hazardous:{' '}
+                          Recyclable • ⚠️{' '}
                           {
                             Object.values(phone.partStatuses).filter(
                               (s) => s === 'Disposable (Hazardous)',
                             ).length
                           }{' '}
-                          • Condition Yes:{' '}
-                          {
-                            Object.values(phone.conditionAnswers).filter(
-                              (v) => v,
-                            ).length
-                          }
-                        </div>
+                          Hazardous • {phone.images.length} photo
+                          {phone.images.length !== 1 ? 's' : ''}
+                        </p>
                       </div>
-                    </div>
-                    <span className='text-sm text-gray-500'>
-                      {phone.images.length} photo
-                      {phone.images.length !== 1 ? 's' : ''}
-                    </span>
-                  </label>
-                ))}
+                    </label>
+                  ))
+                ) : (
+                  <p className='text-gray-400 text-center py-4'>
+                    No devices registered yet.{' '}
+                    <Link
+                      href='/add-phone'
+                      className='text-teal-400 hover:underline'>
+                      Add a device first.
+                    </Link>
+                  </p>
+                )}
               </div>
               {selectedPhones.length > 0 && (
-                <p className='text-sm text-gray-600 mt-2'>
-                  {selectedPhones.length} phone
+                <p className='text-sm text-teal-400 font-medium'>
+                  ✓ {selectedPhones.length} device
                   {selectedPhones.length !== 1 ? 's' : ''} selected
                 </p>
               )}
             </div>
 
             {/* Disposal Method */}
-            <div>
-              <Label className='text-base font-medium'>Disposal Method *</Label>
-              <p className='text-sm text-gray-600 mb-3'>
-                Choose how you want to dispose of your phones
-              </p>
+            <div className='space-y-4'>
+              <h3 className='text-lg font-semibold text-white flex items-center gap-2'>
+                <span className='w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold'>
+                  3
+                </span>
+                Choose Disposal Method *
+              </h3>
               <RadioGroup
                 value={method}
                 onValueChange={(value) =>
                   setMethod(value as 'pickup' | 'dropoff')
                 }
                 className='space-y-3'>
-                <div className='flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50'>
-                  <RadioGroupItem value='dropoff' id='dropoff' />
+                <div className='flex items-center gap-3 p-4 border border-slate-700/50 rounded-lg bg-slate-800/30 hover:border-emerald-500/30 cursor-pointer transition-all'>
+                  <RadioGroupItem
+                    value='dropoff'
+                    id='dropoff'
+                    className='self-center w-4 h-4 accent-emerald-500'
+                  />
                   <div className='flex-1'>
                     <Label
                       htmlFor='dropoff'
-                      className='font-medium cursor-pointer flex items-center gap-2'>
-                      <MapPin className='w-4 h-4' />
-                      Drop-off at location
+                      className='font-semibold text-white cursor-pointer flex items-center gap-2'>
+                      <MapPin className='w-4 h-4 text-emerald-400' />
+                      Drop-off at Certified Center
                     </Label>
-                    <p className='text-sm text-gray-600'>
-                      Take your phones to one of our collection sites
+                    <p className='text-sm text-gray-400 mt-1'>
+                      Take your devices to one of our partner e-waste centers
+                      for proper handling
                     </p>
                   </div>
                 </div>
-                <div className='flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50'>
-                  <RadioGroupItem value='pickup' id='pickup' />
+                <div className='flex items-center gap-3 p-4 border border-slate-700/50 rounded-lg bg-slate-800/30 hover:border-orange-500/30 cursor-pointer transition-all'>
+                  <RadioGroupItem
+                    value='pickup'
+                    id='pickup'
+                    className='self-center w-4 h-4 accent-orange-500'
+                  />
                   <div className='flex-1'>
                     <Label
                       htmlFor='pickup'
-                      className='font-medium cursor-pointer flex items-center gap-2'>
-                      <Truck className='w-4 h-4' />
-                      Pick-up from address
+                      className='font-semibold text-white cursor-pointer flex items-center gap-2'>
+                      <Truck className='w-4 h-4 text-orange-400' />
+                      Schedule Pick-up
                     </Label>
-                    <p className='text-sm text-gray-600'>
-                      We&apos;ll come to your location to collect your phones
+                    <p className='text-sm text-gray-400 mt-1'>
+                      We&apos;ll collect your devices from your home address at
+                      a time convenient for you
                     </p>
                   </div>
                 </div>
@@ -279,32 +314,32 @@ export default function CreateRequest() {
 
             {/* Conditional Fields based on method */}
             {method === 'pickup' && (
-              <div>
-                <Label htmlFor='address' className='text-base font-medium'>
+              <div className='space-y-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg'>
+                <Label htmlFor='address' className='text-white font-semibold'>
                   Pick-up Address *
                 </Label>
-                <Input
+                <textarea
                   id='address'
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder='Enter your complete address'
+                  placeholder='House No., Street, District, City, Postal Code'
                   required
-                  className='mt-1'
+                  className='w-full px-3 py-2 bg-slate-800/50 border border-orange-500/30 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 placeholder:text-gray-500'
+                  rows={3}
                 />
-                <p className='text-sm text-gray-600 mt-1'>
-                  Please provide a detailed address including landmarks for easy
-                  location
+                <p className='text-sm text-gray-400'>
+                  Include complete address with landmarks for easy location
                 </p>
               </div>
             )}
 
             {method === 'dropoff' && (
-              <div>
-                <Label className='text-base font-medium'>
-                  Select Drop-off Site *
+              <div className='space-y-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg'>
+                <Label className='text-white font-semibold'>
+                  Select Drop-off Center *
                 </Label>
-                <p className='text-sm text-gray-600 mb-3'>
-                  Choose a convenient location to drop off your phones
+                <p className='text-sm text-gray-400 mb-3'>
+                  All centers accept and properly handle e-waste
                 </p>
                 <RadioGroup
                   value={dropOffSite}
@@ -313,22 +348,24 @@ export default function CreateRequest() {
                   {DROP_OFF_SITES.map((site) => (
                     <div
                       key={site.id}
-                      className='flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50'>
+                      className='flex items-center gap-3 p-4 border border-slate-700/50 rounded-lg bg-slate-800/30 hover:border-emerald-500/30 cursor-pointer transition-all'>
                       <RadioGroupItem
                         value={site.id}
                         id={site.id}
-                        className='mt-1'
+                        className='self-center w-4 h-4 accent-emerald-500'
                       />
                       <div className='flex-1'>
                         <Label
                           htmlFor={site.id}
-                          className='font-medium cursor-pointer'>
+                          className='font-semibold text-white cursor-pointer'>
                           {site.name}
                         </Label>
-                        <p className='text-sm text-gray-600 mt-1'>
-                          {site.address}
+                        <p className='text-sm text-gray-400 mt-2'>
+                          📍 {site.address}
                         </p>
-                        <p className='text-sm text-gray-500'>🕒 {site.hours}</p>
+                        <p className='text-sm text-emerald-400 mt-1'>
+                          🕒 {site.hours}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -337,8 +374,10 @@ export default function CreateRequest() {
             )}
 
             {/* Preferred Date */}
-            <div>
-              <Label htmlFor='preferredDate' className='text-base font-medium'>
+            <div className='space-y-2'>
+              <Label
+                htmlFor='preferredDate'
+                className='text-white font-semibold'>
                 Preferred Date (Optional)
               </Label>
               <Input
@@ -347,50 +386,52 @@ export default function CreateRequest() {
                 value={preferredDate}
                 onChange={(e) => setPreferredDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className='mt-1'
+                className='bg-slate-800/50 border-teal-500/30 text-white focus:border-teal-500'
               />
-              <p className='text-sm text-gray-600 mt-1'>
-                Leave empty if you have no preferred date
+              <p className='text-sm text-gray-400'>
+                Leave empty if you have no preference
               </p>
             </div>
 
             {/* Notes */}
-            <div>
-              <Label htmlFor='notes' className='text-base font-medium'>
-                Notes (Optional)
+            <div className='space-y-2'>
+              <Label htmlFor='notes' className='text-white font-semibold'>
+                Special Instructions (Optional)
               </Label>
               <textarea
                 id='notes'
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder='Any additional notes or special instructions...'
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1'
+                placeholder='Any special handling needs, accessibility requirements, or additional instructions...'
+                className='w-full px-3 py-2 bg-slate-800/50 border border-teal-500/30 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/50 placeholder:text-gray-500'
                 rows={4}
               />
-              <p className='text-sm text-gray-600 mt-1'>
-                Special handling instructions, accessibility needs, or other
-                relevant information
-              </p>
             </div>
 
             {/* Submit Button */}
-            <div className='pt-4 border-t'>
+            <div className='pt-6 border-t border-slate-700/50 space-y-4'>
               <Button
                 onClick={handleCreateRequest}
-                className='w-full'
+                className='w-full bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white border-0 font-semibold py-6 text-lg'
                 size='lg'
                 disabled={isSubmitting}>
-                {isSubmitting
-                  ? 'Creating Request...'
-                  : 'Create Disposal Request'}
+                {isSubmitting ? (
+                  <>
+                    <span className='inline-block animate-spin mr-2'>⏳</span>
+                    Creating Request...
+                  </>
+                ) : (
+                  '✓ Create Disposal Request'
+                )}
               </Button>
-              <p className='text-sm text-gray-600 text-center mt-2'>
-                You will be redirected to your requests page after submission
+              <p className='text-xs text-gray-500 text-center'>
+                Your request will be reviewed and you&apos;ll receive updates on
+                your registered contact
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }
