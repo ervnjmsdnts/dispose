@@ -14,33 +14,87 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { PARTS_CLASSIFICATIONS, CONDITION_QUESTIONS } from '@/lib/constants';
 
-const PART_STATUSES = [
-  'Recyclable',
-  'Disposable (Hazardous)',
-  'Disposable (Contaminated)',
-  'Disposable (Non-functional)',
-];
+// Calculate part statuses based on condition answers
+const calculatePartStatuses = (
+  answers: Record<string, boolean>,
+): Record<string, string> => {
+  // Map answers to readable names
+  const power = answers['0'] === true; // Does phone power on?
+  const battery = answers['1'] === true; // Battery damaged?
+  const screen = answers['2'] === true; // Screen cracked?
+  const water = answers['3'] === true; // Water exposure?
+  const corrosion = answers['4'] === true; // Corrosion?
+  const fire = answers['5'] === true; // Fire damage?
+  const speaker = answers['6'] === true; // Speaker faulty?
+  const vibration = answers['7'] === true; // Vibrates?
+  const ports = answers['8'] === true; // Ports damaged?
+  const casing = answers['9'] === true; // Casing damaged?
+
+  const statuses: Record<string, string> = {};
+
+  // Battery
+  statuses['Battery'] =
+    battery || fire ? 'Disposable (Hazardous)' : 'Recyclable';
+
+  // Screen
+  statuses['Screen'] = screen ? 'Disposable (Broken)' : 'Recyclable';
+
+  // Motherboard
+  if (water || corrosion) {
+    statuses['Motherboard'] = 'Disposable (Contaminated)';
+  } else if (!power) {
+    statuses['Motherboard'] = 'Recyclable (requires testing)';
+  } else {
+    statuses['Motherboard'] = 'Recyclable';
+  }
+
+  // Camera
+  statuses['Camera'] =
+    water || corrosion ? 'Disposable (Contaminated)' : 'Recyclable';
+
+  // Speaker
+  statuses['Speaker'] = speaker ? 'Disposable (Faulty)' : 'Recyclable';
+
+  // Microphone
+  statuses['Microphone'] =
+    water || corrosion ? 'Disposable (Contaminated)' : 'Recyclable';
+
+  // Casing
+  statuses['Casing'] = casing ? 'Disposable (Damaged)' : 'Recyclable';
+
+  // Connectors & Ports
+  statuses['Connectors & Ports'] = ports
+    ? 'Disposable (Damaged)'
+    : 'Recyclable';
+
+  // SIM/SD Tray
+  statuses['SIM/SD Tray'] =
+    water || corrosion ? 'Disposable (Contaminated)' : 'Recyclable';
+
+  // Flex Cable
+  statuses['Flex Cable'] =
+    water || corrosion ? 'Disposable (Contaminated)' : 'Recyclable';
+
+  // Vibration Motor
+  statuses['Vibration Motor'] = !vibration
+    ? 'Disposable (Non-functional)'
+    : 'Recyclable';
+
+  return statuses;
+};
 
 export default function AddPhone() {
   const [ownerIdentifier, setOwnerIdentifier] = useState('');
-  const [partStatuses, setPartStatuses] = useState<Record<string, string>>(
-    () => {
-      const initial: Record<string, string> = {};
-      PARTS_CLASSIFICATIONS.forEach((part) => {
-        initial[part] = '';
-      });
-      return initial;
-    },
-  );
   const [conditionAnswers, setConditionAnswers] = useState<
-    Record<string, boolean>
+    Record<string, boolean | undefined>
   >(() => {
-    const initial: Record<string, boolean> = {};
+    const initial: Record<string, boolean | undefined> = {};
     CONDITION_QUESTIONS.forEach((_, index) => {
-      initial[index.toString()] = false;
+      initial[index.toString()] = undefined;
     });
     return initial;
   });
+  const [partStatuses, setPartStatuses] = useState<Record<string, string>>({});
   const [images, setImages] = useState<string[]>([]);
   const [imageStorageIds, setImageStorageIds] = useState<Id<'_storage'>[]>([]);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -54,6 +108,19 @@ export default function AddPhone() {
   const uploadImage = useAction(api.index.uploadImage);
   const createPhoneWithImages = useMutation(api.index.createPhoneWithImages);
   const router = useRouter();
+
+  // Auto-calculate part statuses when condition answers change
+  useEffect(() => {
+    const allAnswered = CONDITION_QUESTIONS.every(
+      (_, index) => conditionAnswers[index.toString()] !== undefined,
+    );
+    if (allAnswered) {
+      const calculated = calculatePartStatuses(
+        conditionAnswers as Record<string, boolean>,
+      );
+      setPartStatuses(calculated);
+    }
+  }, [conditionAnswers]);
 
   useEffect(() => {
     // Check if camera is available
@@ -221,15 +288,6 @@ export default function AddPhone() {
       return;
     }
 
-    // Check if all parts have a status assigned
-    const allPartsAssigned = PARTS_CLASSIFICATIONS.every(
-      (part) => partStatuses[part] && partStatuses[part].trim(),
-    );
-    if (!allPartsAssigned) {
-      alert('Please assign a status to all phone parts');
-      return;
-    }
-
     // Check if all condition questions have been answered
     const allQuestionsAnswered = CONDITION_QUESTIONS.every(
       (_, index) => conditionAnswers[index.toString()] !== undefined,
@@ -240,12 +298,21 @@ export default function AddPhone() {
     }
 
     try {
+      // Convert conditionAnswers to Record<string, boolean> (filter out undefined)
+      const finalAnswers: Record<string, boolean> = {};
+      Object.keys(conditionAnswers).forEach((key) => {
+        const value = conditionAnswers[key];
+        if (value !== undefined) {
+          finalAnswers[key] = value;
+        }
+      });
+
       if (imageStorageIds.length > 0) {
         // Create phone with images
         await createPhoneWithImages({
           ownerIdentifier,
           partStatuses,
-          conditionAnswers,
+          conditionAnswers: finalAnswers,
           imageIds: imageStorageIds,
         });
       } else {
@@ -253,7 +320,7 @@ export default function AddPhone() {
         await createPhone({
           ownerIdentifier,
           partStatuses,
-          conditionAnswers,
+          conditionAnswers: finalAnswers,
         });
       }
       router.push('/');
@@ -303,66 +370,19 @@ export default function AddPhone() {
               />
             </div>
 
-            {/* Phone Parts Classification Section */}
+            {/* Device Condition Questions Section */}
             <div className='space-y-4'>
               <div>
                 <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
                   <span className='w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold'>
                     1
                   </span>
-                  Component Classification
-                </h3>
-                <p className='text-sm text-gray-400 mb-4'>
-                  Assess each component. Recyclable parts recover valuable
-                  materials. Disposable parts require proper handling to prevent
-                  environmental contamination.
-                </p>
-              </div>
-              <div className='space-y-3'>
-                {PARTS_CLASSIFICATIONS.map((part) => (
-                  <div
-                    key={part}
-                    className='bg-slate-800/30 border border-slate-700/50 rounded-lg p-4'>
-                    <Label
-                      htmlFor={`part-${part}`}
-                      className='text-white font-medium block mb-2'>
-                      {part}
-                    </Label>
-                    <select
-                      id={`part-${part}`}
-                      value={partStatuses[part] || ''}
-                      onChange={(e) =>
-                        setPartStatuses((prev) => ({
-                          ...prev,
-                          [part]: e.target.value,
-                        }))
-                      }
-                      className='w-full px-3 py-2 bg-slate-700/50 border border-teal-500/20 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                      required>
-                      <option value=''>Select status...</option>
-                      {PART_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Device Condition Questions Section */}
-            <div className='space-y-4'>
-              <div>
-                <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
-                  <span className='w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold'>
-                    2
-                  </span>
                   Device Condition Assessment
                 </h3>
                 <p className='text-sm text-gray-400 mb-4'>
                   Answer these questions to assess your device&apos;s condition.
-                  This helps determine the safest disposal method.
+                  Component statuses will be automatically calculated based on
+                  your answers.
                 </p>
               </div>
               <div className='space-y-3'>
@@ -414,12 +434,87 @@ export default function AddPhone() {
               </div>
             </div>
 
+            {/* Auto-calculated Component Classification Section */}
+            <div className='space-y-4'>
+              <div>
+                <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
+                  <span className='w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold'>
+                    2
+                  </span>
+                  Component Classification
+                  <span className='ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full'>
+                    Auto-calculated
+                  </span>
+                </h3>
+                <p className='text-sm text-gray-400 mb-4'>
+                  {Object.keys(partStatuses).length > 0
+                    ? "Based on your answers, here's the classification for each component. Recyclable parts recover valuable materials. Disposable parts require proper handling."
+                    : 'Complete the condition assessment above to see the classification for each component.'}
+                </p>
+              </div>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                {PARTS_CLASSIFICATIONS.map((part) => {
+                  const status = partStatuses[part] || 'Pending assessment';
+                  const isPending = !partStatuses[part];
+                  const isRecyclable = status?.includes('Recyclable');
+                  const isHazardous = status?.includes('Hazardous');
+                  const isContaminated = status?.includes('Contaminated');
+                  const isBroken =
+                    status?.includes('Broken') || status?.includes('Damaged');
+                  const isFaulty =
+                    status?.includes('Faulty') ||
+                    status?.includes('Non-functional');
+
+                  return (
+                    <div
+                      key={part}
+                      className={`bg-slate-800/30 border rounded-lg p-3 ${
+                        isPending
+                          ? 'border-slate-700/50'
+                          : isRecyclable && !status.includes('requires testing')
+                            ? 'border-emerald-500/30'
+                            : isHazardous
+                              ? 'border-red-500/30'
+                              : isContaminated
+                                ? 'border-orange-500/30'
+                                : isBroken || isFaulty
+                                  ? 'border-yellow-500/30'
+                                  : 'border-cyan-500/30'
+                      }`}>
+                      <div className='flex items-start justify-between gap-2'>
+                        <span className='text-white font-medium text-sm'>
+                          {part}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded shrink-0 ${
+                            isPending
+                              ? 'bg-slate-700/50 text-gray-400'
+                              : isRecyclable &&
+                                  !status.includes('requires testing')
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : isHazardous
+                                  ? 'bg-red-500/20 text-red-400'
+                                  : isContaminated
+                                    ? 'bg-orange-500/20 text-orange-400'
+                                    : isBroken || isFaulty
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : 'bg-cyan-500/20 text-cyan-400'
+                          }`}>
+                          {status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Photos Section */}
             <div className='space-y-4'>
               <div>
                 <h3 className='text-lg font-semibold text-white flex items-center gap-2 mb-4'>
                   <span className='w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-sm font-bold'>
-                    3
+                    {Object.keys(partStatuses).length > 0 ? '3' : '2'}
                   </span>
                   Device Photos
                 </h3>
