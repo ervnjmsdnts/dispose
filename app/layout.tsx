@@ -5,8 +5,8 @@ import { Providers } from './providers';
 import { ClerkProvider } from '@clerk/nextjs';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Recycle } from 'lucide-react';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Dispose - Responsible E-Waste Management',
+  title: 'DisposeIT',
   description:
     'Manage and recycle your electronic devices responsibly. Document phones, schedule pickups, and find certified drop-off centers.',
 };
@@ -30,11 +30,16 @@ function Header() {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex justify-between items-center py-4'>
           <Link href='/' className='flex items-center gap-2 group'>
-            <div className='p-2 bg-linear-to-br from-teal-400 to-cyan-500 rounded-lg group-hover:shadow-lg group-hover:shadow-teal-500/50 transition-all'>
-              <Recycle className='w-5 h-5 text-slate-900' />
+            <div className='relative w-12 h-12 rounded-full flex items-center justify-center group-hover:shadow-lg group-hover:shadow-teal-500/50 transition-all'>
+              <Image
+                src='/logo4.png'
+                alt='DisposeIT Logo'
+                fill
+                className='object-contain'
+              />
             </div>
             <span className='text-xl font-bold bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent'>
-              Dispose
+              DisposeIT
             </span>
           </Link>
 
